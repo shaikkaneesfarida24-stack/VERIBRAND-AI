@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   ShieldCheck,
@@ -67,8 +66,42 @@ const navigation = [
   { name: "Verification History", icon: History },
   { name: "Brand Truth Engine", icon: ShieldCheck },
   { name: "Dependency Graph", icon: Network },
+  { name: "AI Brand Assistant", icon: Sparkles },
+  { name: "Scam Intelligence Centre", icon: ShieldAlert },
 ];
 
+const demoScamReports = [
+  {
+    id: "SC-001",
+    title: "Look-alike shopping website",
+    type: "Website impersonation",
+    target: "Aurelia Foods",
+    status: "Under review",
+    date: "Demo record",
+    risk: "High",
+    description: "A sample report describing a website that imitates a brand's identity.",
+  },
+  {
+    id: "SC-002",
+    title: "Unverified prize message",
+    type: "Message / social engineering",
+    target: "General public",
+    status: "Reported",
+    date: "Demo record",
+    risk: "Medium",
+    description: "A sample message claims the recipient has won a prize and requests personal details.",
+  },
+  {
+    id: "SC-003",
+    title: "Impersonation social profile",
+    type: "Social media impersonation",
+    target: "Aurelia Foods",
+    status: "Monitoring",
+    date: "Demo record",
+    risk: "Medium",
+    description: "A sample social profile uses a similar brand name and copied visual identity.",
+  },
+];
 function App() {
   const [activePage, setActivePage] = useState("Dashboard");
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -79,6 +112,7 @@ function App() {
   const [content, setContent] = useState("");
   const [result, setResult] = useState(null);
   const [chatInput, setChatInput] = useState("");
+  const [scamSearch, setScamSearch] = useState("");
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -222,20 +256,35 @@ function App() {
     if (!chatInput.trim()) return;
 
     const question = chatInput.trim();
+    const q = question.toLowerCase();
+    let reply =
+      "I can explain the features in this VERIBRAND AI prototype. Try asking about approved products, prices, verification results, or scam-report examples.";
+
+    if (q.includes("product") || q.includes("brand") || q.includes("price") || q.includes("fact")) {
+      const factsText = facts
+        .map((fact) => `${fact.product} — ${fact.brand} — ${fact.price} (${fact.status})`)
+        .join("; ");
+      reply = facts.length
+        ? `Here are the brand facts currently stored in this browser session: ${factsText}. These are sample project records; confirm them with the brand owner before real-world use.`
+        : "There are no brand facts saved in this session yet. Add approved information in the Brand Knowledge Hub.";
+    } else if (q.includes("score") || q.includes("result") || q.includes("verification") || q.includes("compliance")) {
+      reply = result
+        ? `Your latest demo verification scored ${result.score}/100 with status "${result.status}". Finding: ${result.findings.join(" ")} Suggested action: ${result.suggestions.join(" ")}`
+        : "No verification has been run in this session yet. Open Compliance Engine, enter a product and its content, then select Verify Content.";
+    } else if (q.includes("scam") || q.includes("fraud") || q.includes("fake") || q.includes("impersonat")) {
+      reply = "The Scam Intelligence Centre currently contains fictional demonstration reports only. They are not live scam alerts or independently verified incidents. Check official company channels and relevant cybercrime authorities before acting on a real report.";
+    } else if (q.includes("help") || q.includes("how")) {
+      reply = "You can add approved product facts in Brand Knowledge Hub, check advertisements in Compliance Engine, review results in Verification History, and explore example reports in Scam Intelligence Centre.";
+    }
 
     setMessages((previous) => [
       ...previous,
       { role: "user", text: question },
-      {
-        role: "assistant",
-        text: "I can help with brand facts, product information and content verification. Please use the Compliance Engine to run a verification. This assistant is a prototype demonstration.",
-      },
+      { role: "assistant", text: reply },
     ]);
-
     setChatInput("");
   }
-
-  function renderDashboard() {
+    function renderDashboard() {
     return (
       <>
         <section className="dash-hero">
@@ -446,14 +495,14 @@ function App() {
             </div>
             <h3>Findings</h3>
             <ul>
-              {result.findings.map((finding, index) => (
-                <li key={index}>{finding}</li>
+              {result.findings.map((item, index) => (
+                <li key={index}>{item}</li>
               ))}
             </ul>
-            <h3>Correction Suggestions</h3>
+            <h3>Suggested Corrections</h3>
             <ul>
-              {result.suggestions.map((suggestion, index) => (
-                <li key={index}>{suggestion}</li>
+              {result.suggestions.map((item, index) => (
+                <li key={index}>{item}</li>
               ))}
             </ul>
           </div>
@@ -461,8 +510,7 @@ function App() {
       </section>
     );
   }
-
-  function renderWorkspace() {
+    function renderWorkspace() {
     return (
       <section className="panel">
         <PageHeading
@@ -575,7 +623,7 @@ function App() {
       <section className="panel assistant-panel">
         <PageHeading
           title="VERIBRAND AI Assistant"
-          description="Ask questions about the prototype and brand verification."
+          description="Ask about saved brand facts, demo verification results and how to use the workspace."
         />
         <div className="chat-messages">
           {messages.map((message, index) => (
@@ -598,13 +646,84 @@ function App() {
           </button>
         </div>
         <p className="prototype-note">
-          Prototype assistant: responses are predefined demo messages, not live AI.
+          Demo assistant: replies use local rules and current session data. No external AI model or live service is connected.
         </p>
       </section>
     );
   }
 
-  function renderSimplePage(title, description) {
+  function renderScamIntelligence() {
+    const filteredReports = demoScamReports.filter((report) =>
+      `${report.title} ${report.type} ${report.target} ${report.status}`
+        .toLowerCase()
+        .includes(scamSearch.toLowerCase())
+    );
+
+    return (
+      <section className="scam-page">
+        <PageHeading
+          title="Scam Intelligence Centre"
+          description="Explore example brand-impersonation and suspicious-message reports."
+        />
+
+        <div className="scam-disclaimer">
+          <ShieldAlert size={19} />
+          <div>
+            <strong>DEMO DATA ONLY — NOT LIVE SCAM INTELLIGENCE</strong>
+            <p>All incidents below are fictional examples for demonstrating the interface. No live news feed, external threat database, or incident verification is connected.</p>
+          </div>
+        </div>
+
+        <div className="stats-grid scam-stats">
+          <StatCard title="Demo Reports" value={demoScamReports.length} icon={<FileText />} />
+          <StatCard title="High-Risk Examples" value={demoScamReports.filter((item) => item.risk === "High").length} icon={<ShieldAlert />} />
+          <StatCard title="Under Review" value={demoScamReports.filter((item) => item.status === "Under review").length} icon={<Clock />} />
+          <StatCard title="Live Alerts" value="0" icon={<Activity />} />
+        </div>
+
+        <div className="panel scam-reports-panel">
+          <div className="scam-toolbar">
+            <div>
+              <h3>Example Incident Reports</h3>
+              <p>Search the sample reports shown in this prototype.</p>
+            </div>
+            <label className="scam-search">
+              <Search size={16} />
+              <input
+                value={scamSearch}
+                onChange={(event) => setScamSearch(event.target.value)}
+                placeholder="Search reports..."
+                aria-label="Search scam reports"
+              />
+            </label>
+          </div>
+
+          <div className="scam-report-list">
+            {filteredReports.map((report) => (
+              <article className="scam-report-card" key={report.id}>
+                <div className="scam-report-top">
+                  <span className="scam-report-id">{report.id}</span>
+                  <span className={`risk-label ${report.risk.toLowerCase()}`}>{report.risk} example risk</span>
+                </div>
+                <h4>{report.title}</h4>
+                <p>{report.description}</p>
+                <div className="scam-report-meta">
+                  <span><strong>Type:</strong> {report.type}</span>
+                  <span><strong>Target:</strong> {report.target}</span>
+                  <span><strong>Status:</strong> {report.status}</span>
+                  <span>{report.date}</span>
+                </div>
+              </article>
+            ))}
+            {filteredReports.length === 0 && (
+              <p>No sample reports match your search.</p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+    function renderSimplePage(title, description) {
     return (
       <section className="panel">
         <PageHeading title={title} description={description} />
@@ -642,6 +761,10 @@ function App() {
           "Dependency Graph",
           "Explore relationships between brand facts and content."
         );
+      case "AI Brand Assistant":
+        return renderAssistant();
+      case "Scam Intelligence Centre":
+        return renderScamIntelligence();
       default:
         return renderDashboard();
     }
